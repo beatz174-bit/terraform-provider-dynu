@@ -2,7 +2,7 @@ terraform {
   required_providers {
     dynu = {
       source  = "beatz174-bit/dynu"
-#      version = "~> 0.2.0"
+#      version = "~> 0.4.0"
     }
   }
 }

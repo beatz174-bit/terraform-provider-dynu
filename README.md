@@ -23,7 +23,7 @@ terraform {
   required_providers {
     dynu = {
       source  = "beatz174-bit/dynu"
-      version = "~> 0.2.0"
+      version = "~> 0.4.0"
     }
   }
 }
@@ -107,7 +107,7 @@ Use a disposable domain/subdomain only.
 
 - Terraform provider source address: `beatz174-bit/dynu`.
 - Repository name must remain `terraform-provider-dynu`.
-- Releases are triggered by pushing a semantic version tag such as `v0.2.0`.
+- Releases are triggered by pushing a semantic version tag such as `v0.4.0`.
 - Required GitHub Actions secrets:
   - `GPG_PRIVATE_KEY`
   - `PASSPHRASE`
