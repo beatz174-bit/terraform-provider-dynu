@@ -41,6 +41,12 @@ type dnsRecordStateItem struct {
 	UpdatedOn  types.String `tfsdk:"updated_on"`
 	Group      types.String `tfsdk:"group"`
 	Host       types.String `tfsdk:"host"`
+	Priority   types.Int64  `tfsdk:"priority"`
+	Weight     types.Int64  `tfsdk:"weight"`
+	Port       types.Int64  `tfsdk:"port"`
+	Flags      types.Int64  `tfsdk:"flags"`
+	Tag        types.String `tfsdk:"tag"`
+	Value      types.String `tfsdk:"value"`
 }
 
 func NewDNSRecordsDataSource() datasource.DataSource {
@@ -81,6 +87,12 @@ func (d *dnsRecordsDataSource) Schema(_ context.Context, _ datasource.SchemaRequ
 					"updated_on":  schema.StringAttribute{Computed: true, Description: "Last update timestamp as returned by Dynu."},
 					"group":       schema.StringAttribute{Computed: true, Description: "Dynu group value for this record."},
 					"host":        schema.StringAttribute{Computed: true, Description: "Host field as returned by Dynu."},
+					"priority":    schema.Int64Attribute{Computed: true, Description: "Priority for MX and SRV records."},
+					"weight":      schema.Int64Attribute{Computed: true, Description: "Weight for SRV records."},
+					"port":        schema.Int64Attribute{Computed: true, Description: "Port for SRV records."},
+					"flags":       schema.Int64Attribute{Computed: true, Description: "Flags for CAA records."},
+					"tag":         schema.StringAttribute{Computed: true, Description: "Tag for CAA records."},
+					"value":       schema.StringAttribute{Computed: true, Description: "Value for CAA records."},
 				}},
 			},
 		},
@@ -145,6 +157,12 @@ func (d *dnsRecordsDataSource) Read(ctx context.Context, req datasource.ReadRequ
 			UpdatedOn:  mapString(record.UpdatedOn),
 			Group:      mapString(record.Group),
 			Host:       mapString(record.Host),
+			Priority:   types.Int64Value(record.Priority),
+			Weight:     types.Int64Value(record.Weight),
+			Port:       types.Int64Value(record.Port),
+			Flags:      types.Int64Value(record.Flags),
+			Tag:        mapString(record.Tag),
+			Value:      mapString(record.Value),
 		})
 	}
 

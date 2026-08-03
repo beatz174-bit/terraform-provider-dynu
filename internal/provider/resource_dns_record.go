@@ -189,6 +189,8 @@ func (r *dnsRecordResource) Create(ctx context.Context, req resource.CreateReque
 
 	state := mapDNSRecordToState(*record, dynamicIntent)
 	state.ID = types.StringValue(formatDNSRecordID(record.DomainID, record.ID))
+	// Preserve plan hostname so node_name overrides don't produce a plan/state inconsistency.
+	state.Hostname = plan.Hostname
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
@@ -219,6 +221,8 @@ func (r *dnsRecordResource) Read(ctx context.Context, req resource.ReadRequest, 
 	dynamicIntent := inferDynamicIntentFromState(state.RecordType, state.Content, state.Dynamic)
 	nextState := mapDNSRecordToState(*record, dynamicIntent)
 	nextState.ID = state.ID
+	// Preserve the stored hostname so node_name overrides remain stable across refreshes.
+	nextState.Hostname = state.Hostname
 	resp.Diagnostics.Append(resp.State.Set(ctx, &nextState)...)
 }
 
@@ -318,6 +322,8 @@ func (r *dnsRecordResource) Update(ctx context.Context, req resource.UpdateReque
 
 	nextState := mapDNSRecordToState(*record, dynamicIntent)
 	nextState.ID = state.ID
+	// Preserve plan hostname so node_name overrides remain stable after updates.
+	nextState.Hostname = plan.Hostname
 	resp.Diagnostics.Append(resp.State.Set(ctx, &nextState)...)
 }
 
@@ -357,7 +363,7 @@ func (r *dnsRecordResource) ImportState(ctx context.Context, req resource.Import
 }
 
 func mapDNSRecordToState(record dynuclient.DNSRecord, dynamicIntent bool) dnsRecordResourceModel {
-	content := normalizeRecordContentForState(record.RecordType, record.Content, dynamicIntent, record.Host)
+	content := normalizeRecordContentForState(record.RecordType, record.Content, dynamicIntent, record.Host, record.Value)
 	return dnsRecordResourceModel{
 		Hostname:   mapString(record.Hostname),
 		RecordType: mapString(record.RecordType),
@@ -676,7 +682,7 @@ func inferDynamicIntentFromState(recordType types.String, content types.String, 
 	return content.IsNull() || (content.IsUnknown())
 }
 
-func normalizeRecordContentForState(recordType string, content string, dynamicIntent bool, host string) types.String {
+func normalizeRecordContentForState(recordType string, content string, dynamicIntent bool, host string, value string) types.String {
 	if dynamicIntent {
 		return types.StringNull()
 	}
@@ -696,11 +702,17 @@ func normalizeRecordContentForState(recordType string, content string, dynamicIn
 		if addr, err := netip.ParseAddr(trimmed); err == nil && addr.Is4() {
 			return types.StringValue(addr.String())
 		}
-	case "CNAME":
+	case "CNAME", "MX", "SRV", "NS", "PTR":
+		// API returns the target in host field; content contains zone-style prefix (e.g. "10 mail.example.com.")
 		if trimmedHost := strings.TrimSpace(host); trimmedHost != "" {
 			return types.StringValue(strings.TrimSuffix(trimmedHost, "."))
 		}
 		return types.StringValue(strings.TrimSuffix(trimmed, "."))
+	case "CAA":
+		// API returns the certificate authority in value field; content contains "flags tag value"
+		if trimmedValue := strings.TrimSpace(value); trimmedValue != "" {
+			return types.StringValue(strings.TrimSuffix(trimmedValue, "."))
+		}
 	}
 
 	return types.StringValue(trimmed)

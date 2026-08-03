@@ -18,7 +18,8 @@ var (
 	_ datasource.DataSourceWithConfigure = &domainDataSource{}
 )
 
-var hostnameValidator = regexp.MustCompile(`^([a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$`)
+// Allows underscore-prefixed labels (RFC 2782 SRV, RFC 6763 DNS-SD, etc.)
+var hostnameValidator = regexp.MustCompile(`^([a-zA-Z0-9_](?:[a-zA-Z0-9_-]{0,61}[a-zA-Z0-9_])?\.)+[a-zA-Z]{2,}$`)
 
 type domainDataSource struct {
 	clientProvider *providerData

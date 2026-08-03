@@ -25,14 +25,23 @@ var (
 type domainResource struct{ clientProvider *providerData }
 
 type domainResourceModel struct {
-	ID          types.Int64  `tfsdk:"id"`
-	Name        types.String `tfsdk:"name"`
-	IPv4Address types.String `tfsdk:"ipv4_address"`
-	IPv6Address types.String `tfsdk:"ipv6_address"`
-	TTL         types.Int64  `tfsdk:"ttl"`
-	Group       types.String `tfsdk:"group"`
-	State       types.String `tfsdk:"state"`
-	Token       types.String `tfsdk:"token"`
+	ID                types.Int64  `tfsdk:"id"`
+	Name              types.String `tfsdk:"name"`
+	IPv4Address       types.String `tfsdk:"ipv4_address"`
+	IPv6Address       types.String `tfsdk:"ipv6_address"`
+	TTL               types.Int64  `tfsdk:"ttl"`
+	Group             types.String `tfsdk:"group"`
+	State             types.String `tfsdk:"state"`
+	Token             types.String `tfsdk:"token"`
+	UnicodeName       types.String `tfsdk:"unicode_name"`
+	IPv4              types.Bool   `tfsdk:"ipv4"`
+	IPv6              types.Bool   `tfsdk:"ipv6"`
+	IPv4WildcardAlias types.Bool   `tfsdk:"ipv4_wildcard_alias"`
+	IPv6WildcardAlias types.Bool   `tfsdk:"ipv6_wildcard_alias"`
+	AllowZoneTransfer types.Bool   `tfsdk:"allow_zone_transfer"`
+	DNSSEC            types.Bool   `tfsdk:"dnssec"`
+	CreatedOn         types.String `tfsdk:"created_on"`
+	UpdatedOn         types.String `tfsdk:"updated_on"`
 }
 
 func NewDomainResource() resource.Resource { return &domainResource{} }
@@ -41,14 +50,23 @@ func (r *domainResource) Metadata(_ context.Context, req resource.MetadataReques
 }
 func (r *domainResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{Description: "Manages a Dynu DNS domain.", Attributes: map[string]schema.Attribute{
-		"id":           schema.Int64Attribute{Computed: true},
-		"name":         schema.StringAttribute{Required: true, PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()}},
-		"ipv4_address": schema.StringAttribute{Optional: true, Computed: true},
-		"ipv6_address": schema.StringAttribute{Optional: true, Computed: true},
-		"ttl":          schema.Int64Attribute{Optional: true, Computed: true},
-		"group":        schema.StringAttribute{Optional: true, Computed: true},
-		"state":        schema.StringAttribute{Computed: true},
-		"token":        schema.StringAttribute{Computed: true, Sensitive: true},
+		"id":                  schema.Int64Attribute{Computed: true},
+		"name":                schema.StringAttribute{Required: true, PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()}},
+		"ipv4_address":        schema.StringAttribute{Optional: true, Computed: true},
+		"ipv6_address":        schema.StringAttribute{Optional: true, Computed: true},
+		"ttl":                 schema.Int64Attribute{Optional: true, Computed: true},
+		"group":               schema.StringAttribute{Optional: true, Computed: true},
+		"state":               schema.StringAttribute{Computed: true},
+		"token":               schema.StringAttribute{Computed: true, Sensitive: true},
+		"unicode_name":        schema.StringAttribute{Computed: true, Description: "Unicode representation of the domain name."},
+		"ipv4":                schema.BoolAttribute{Computed: true, Description: "Whether IPv4 support is enabled for this domain."},
+		"ipv6":                schema.BoolAttribute{Computed: true, Description: "Whether IPv6 support is enabled for this domain."},
+		"ipv4_wildcard_alias": schema.BoolAttribute{Computed: true, Description: "Whether IPv4 wildcard alias is enabled."},
+		"ipv6_wildcard_alias": schema.BoolAttribute{Computed: true, Description: "Whether IPv6 wildcard alias is enabled."},
+		"allow_zone_transfer": schema.BoolAttribute{Computed: true, Description: "Whether zone transfer is allowed for this domain."},
+		"dnssec":              schema.BoolAttribute{Computed: true, Description: "Whether DNSSEC is enabled for this domain."},
+		"created_on":          schema.StringAttribute{Computed: true, Description: "Creation timestamp as returned by Dynu."},
+		"updated_on":          schema.StringAttribute{Computed: true, Description: "Last update timestamp as returned by Dynu."},
 	}}
 }
 func (r *domainResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -138,5 +156,23 @@ func (r *domainResource) ImportState(ctx context.Context, req resource.ImportSta
 }
 
 func mapDomainResource(domain dynuclient.Domain) domainResourceModel {
-	return domainResourceModel{ID: types.Int64Value(domain.ID), Name: types.StringValue(strings.TrimSpace(domain.Name)), IPv4Address: mapString(domain.IPv4Address), IPv6Address: mapString(domain.IPv6Address), TTL: types.Int64Value(domain.TTL), Group: mapString(domain.Group), State: mapString(domain.State), Token: mapString(domain.Token)}
+	return domainResourceModel{
+		ID:                types.Int64Value(domain.ID),
+		Name:              types.StringValue(strings.TrimSpace(domain.Name)),
+		IPv4Address:       mapString(domain.IPv4Address),
+		IPv6Address:       mapString(domain.IPv6Address),
+		TTL:               types.Int64Value(domain.TTL),
+		Group:             mapString(domain.Group),
+		State:             mapString(domain.State),
+		Token:             mapString(domain.Token),
+		UnicodeName:       mapString(domain.UnicodeName),
+		IPv4:              types.BoolValue(domain.IPv4),
+		IPv6:              types.BoolValue(domain.IPv6),
+		IPv4WildcardAlias: types.BoolValue(domain.IPv4WildcardAlias),
+		IPv6WildcardAlias: types.BoolValue(domain.IPv6WildcardAlias),
+		AllowZoneTransfer: types.BoolValue(domain.AllowZoneTransfer),
+		DNSSEC:            types.BoolValue(domain.DNSSEC),
+		CreatedOn:         mapString(domain.CreatedOn),
+		UpdatedOn:         mapString(domain.UpdatedOn),
+	}
 }

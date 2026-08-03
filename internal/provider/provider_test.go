@@ -16,16 +16,23 @@ func TestResolveAPIKey(t *testing.T) {
 	tests := []struct {
 		name   string
 		config types.String
+		envVal string
 		want   string
 	}{
 		{name: "configured", config: types.StringValue("config-key"), want: "config-key"},
 		{name: "null when missing", config: types.StringNull(), want: ""},
 		{name: "trim spaces", config: types.StringValue("  config-key "), want: "config-key"},
 		{name: "unknown when pending", config: types.StringUnknown(), want: ""},
+		{name: "env var fallback when null", config: types.StringNull(), envVal: "env-key", want: "env-key"},
+		{name: "config takes priority over env", config: types.StringValue("config-key"), envVal: "env-key", want: "config-key"},
+		{name: "env var fallback when unknown", config: types.StringUnknown(), envVal: "env-key", want: "env-key"},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+			if tc.envVal != "" {
+				t.Setenv("DYNU_API_KEY", tc.envVal)
+			}
 			if got := resolveAPIKey(tc.config); got != tc.want {
 				t.Fatalf("resolveAPIKey() = %q, want %q", got, tc.want)
 			}

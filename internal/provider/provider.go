@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"os"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -47,7 +48,7 @@ func (p *dynuProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp 
 			"api_key": schema.StringAttribute{
 				Optional:    true,
 				Sensitive:   true,
-				Description: "Dynu API key. Set this explicitly, such as via a Terraform variable in terraform.tfvars.",
+				Description: "Dynu API key. Can also be set via the DYNU_API_KEY environment variable.",
 			},
 			"base_url": schema.StringAttribute{
 				Optional:    true,
@@ -82,9 +83,11 @@ func (p *dynuProvider) Configure(ctx context.Context, req provider.ConfigureRequ
 
 func resolveAPIKey(configValue types.String) string {
 	if !configValue.IsNull() && !configValue.IsUnknown() {
-		return strings.TrimSpace(configValue.ValueString())
+		if v := strings.TrimSpace(configValue.ValueString()); v != "" {
+			return v
+		}
 	}
-	return ""
+	return strings.TrimSpace(os.Getenv("DYNU_API_KEY"))
 }
 
 func (p *dynuProvider) DataSources(_ context.Context) []func() datasource.DataSource {

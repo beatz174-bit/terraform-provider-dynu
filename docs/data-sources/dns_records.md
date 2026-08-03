@@ -37,3 +37,9 @@ data "dynu_dns_records" "records" {
   - `updated_on` (String)
   - `group` (String)
   - `host` (String)
+  - `priority` (Number) Priority for MX and SRV records.
+  - `weight` (Number) Weight for SRV records.
+  - `port` (Number) Port for SRV records.
+  - `flags` (Number) Flags for CAA records.
+  - `tag` (String) Tag for CAA records.
+  - `value` (String) Value for CAA records.

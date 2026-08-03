@@ -128,6 +128,20 @@ func TestIntegrationDataSourceDNSRecords(t *testing.T) {
 	if len(state.Records) != 2 || state.Records[0].ID.ValueInt64() != 10 {
 		t.Fatalf("unexpected records state: %#v", state.Records)
 	}
+	for _, rec := range state.Records {
+		if rec.Priority.IsNull() || rec.Priority.IsUnknown() {
+			t.Fatalf("expected priority to be a known value (zero for non-MX), got null/unknown for record %d", rec.ID.ValueInt64())
+		}
+		if rec.Weight.IsNull() || rec.Weight.IsUnknown() {
+			t.Fatalf("expected weight to be a known value, got null/unknown for record %d", rec.ID.ValueInt64())
+		}
+		if rec.Port.IsNull() || rec.Port.IsUnknown() {
+			t.Fatalf("expected port to be a known value, got null/unknown for record %d", rec.ID.ValueInt64())
+		}
+		if rec.Flags.IsNull() || rec.Flags.IsUnknown() {
+			t.Fatalf("expected flags to be a known value, got null/unknown for record %d", rec.ID.ValueInt64())
+		}
+	}
 }
 
 func TestIntegrationDataSourceDiagnosticsFromAPIError(t *testing.T) {

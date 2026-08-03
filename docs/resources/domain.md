@@ -38,6 +38,15 @@ These fields can be configured, and also reflect values returned by Dynu.
 - `id` (Number) Dynu numeric domain ID.
 - `state` (String) Dynu state.
 - `token` (String, Sensitive) Dynu domain token.
+- `unicode_name` (String) Unicode representation of the domain name.
+- `ipv4` (Boolean) Whether IPv4 support is enabled.
+- `ipv6` (Boolean) Whether IPv6 support is enabled.
+- `ipv4_wildcard_alias` (Boolean) Whether IPv4 wildcard alias is enabled.
+- `ipv6_wildcard_alias` (Boolean) Whether IPv6 wildcard alias is enabled.
+- `allow_zone_transfer` (Boolean) Whether zone transfer is allowed.
+- `dnssec` (Boolean) Whether DNSSEC is enabled.
+- `created_on` (String) Creation timestamp as returned by Dynu.
+- `updated_on` (String) Last update timestamp as returned by Dynu.
 
 ## Import
 

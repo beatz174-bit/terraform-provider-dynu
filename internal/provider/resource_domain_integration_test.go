@@ -34,6 +34,15 @@ func TestIntegrationResourceDomainLifecycleAndImport(t *testing.T) {
 	if state.ID.ValueInt64() == 0 {
 		t.Fatal("expected created id")
 	}
+	if state.State.IsNull() || state.State.IsUnknown() {
+		t.Fatal("expected state attribute to be populated after create")
+	}
+	if state.UnicodeName.IsNull() || state.UnicodeName.IsUnknown() {
+		t.Fatal("expected unicode_name to be populated after create")
+	}
+	if state.DNSSEC.IsNull() || state.DNSSEC.IsUnknown() {
+		t.Fatal("expected dnssec to be a known bool after create")
+	}
 
 	state.TTL = types.Int64Value(300)
 	plan = tfsdk.Plan{Schema: schemaResp.Schema}
